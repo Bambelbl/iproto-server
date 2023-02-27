@@ -28,7 +28,7 @@ func NewRateLimiter(loger *log.Logger, scale int64, limit uint32) *RateLimiter {
 		buckets:  make(map[string]uint32),
 		scale:    scale,
 		limit:    limit,
-		stopChan: make(chan struct{}),
+		stopChan: make(chan struct{}, 1),
 	}
 	go rateLimiter.removeOldLimiters()
 	return rateLimiter
