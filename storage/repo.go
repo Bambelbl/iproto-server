@@ -27,6 +27,7 @@ func NewSimpleStorageRepo() Storage {
 	return &SimpleStorage{state: READ_WRITE}
 }
 
+// GetState Return current state of storage
 func (s *SimpleStorage) GetState() (state int) {
 	s.mutex.RLock()
 	state = s.state
@@ -34,6 +35,7 @@ func (s *SimpleStorage) GetState() (state int) {
 	return
 }
 
+// SetState Set new value of state for storage
 func (s *SimpleStorage) SetState(state int) {
 	s.mutex.Lock()
 	s.state = state
@@ -41,6 +43,7 @@ func (s *SimpleStorage) SetState(state int) {
 	return
 }
 
+// GetValue Return value from storage by index
 func (s *SimpleStorage) GetValue(idx int) (data string, err error) {
 	if (*s).GetState() == MAINTENANCE {
 		return "", errors.New("storage state doesn't allow this operation")
@@ -54,6 +57,7 @@ func (s *SimpleStorage) GetValue(idx int) (data string, err error) {
 	return
 }
 
+// SetValue Set value to known index of storage
 func (s *SimpleStorage) SetValue(idx int, str string) (err error) {
 	if (*s).GetState() != READ_WRITE {
 		return errors.New("storage state doesn't allow this operation")

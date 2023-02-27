@@ -30,6 +30,7 @@ func STORAGE_READ(stor *storage.Storage, idx int) (string, error) {
 	return (*stor).GetValue(idx)
 }
 
+// Handler Main handler that calls the handler that matches the value func_id
 func Handler(packet request_packet.IprotoPacketRequest, storage *storage.Storage) (string, uint32) {
 	switch packet.Header.Func_id {
 	case 65537:

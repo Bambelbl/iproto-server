@@ -9,7 +9,7 @@ import (
 )
 
 type RateLimiter struct {
-	loger    *log.Logger
+	logger   *log.Logger
 	buckets  map[string]uint32
 	scale    int64
 	limit    uint32
@@ -24,7 +24,7 @@ const (
 
 func NewRateLimiter(loger *log.Logger, scale int64, limit uint32) *RateLimiter {
 	rateLimiter := &RateLimiter{
-		loger:    loger,
+		logger:   loger,
 		buckets:  make(map[string]uint32),
 		scale:    scale,
 		limit:    limit,
@@ -34,10 +34,12 @@ func NewRateLimiter(loger *log.Logger, scale int64, limit uint32) *RateLimiter {
 	return rateLimiter
 }
 
+// Stop shutdown of RateLimiter
 func (rl *RateLimiter) Stop() {
 	rl.stopChan <- struct{}{}
 }
 
+// ValidRate checks if the client sends requests more than limit times per scale
 func (rl *RateLimiter) ValidRate(IP string) bool {
 	stamp := time.Now().UnixNano() / int64(time.Millisecond)
 	bucketNumber := stamp / rl.scale
@@ -57,6 +59,7 @@ func (rl *RateLimiter) ValidRate(IP string) bool {
 	}
 }
 
+// removeOldLimiters deletes old buckets times per interval
 func (rl *RateLimiter) removeOldLimiters() {
 	select {
 	case <-rl.stopChan:
@@ -68,7 +71,7 @@ func (rl *RateLimiter) removeOldLimiters() {
 			_, bucketTimeStr, _ := strings.Cut(key, "_")
 			bucketTime, err := strconv.ParseInt(bucketTimeStr, 10, 64)
 			if err != nil {
-				rl.loger.Println("RateLimiter: parsing key error: ", err.Error())
+				rl.logger.Println("RateLimiter: parsing key error: ", err.Error())
 			}
 			return bucketTime < (stamp - DELETE_TIMEOUT)
 		}

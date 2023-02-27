@@ -24,7 +24,7 @@ func main() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, os.Kill)
 
-	iprotoServer := server.NewServer(ADDR, logger, MAX_CLIENTS, SCALE_RPS, LIMIT_RPS)
+	iprotoServer := server.NewIprotoServer(ADDR, logger, MAX_CLIENTS, SCALE_RPS, LIMIT_RPS)
 
 	go func() {
 		<-quit

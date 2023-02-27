@@ -27,12 +27,13 @@ type IprotoServer struct {
 	rateLimiter     *rate_limiter.RateLimiter
 }
 
-func NewServer(addr string, loger *log.Logger, maxClients int, scale_rps int64, limit_rps uint32) *IprotoServer {
+// NewIprotoServer initializes IprotoServer and starts it to listen
+func NewIprotoServer(addr string, logger *log.Logger, maxClients int, scale_rps int64, limit_rps uint32) *IprotoServer {
 	s := &IprotoServer{
-		loger:           loger,
+		loger:           logger,
 		quit:            make(chan struct{}),
 		queueForClients: make(chan struct{}, maxClients),
-		rateLimiter:     rate_limiter.NewRateLimiter(loger, scale_rps, limit_rps),
+		rateLimiter:     rate_limiter.NewRateLimiter(logger, scale_rps, limit_rps),
 	}
 	stor := storage.NewSimpleStorageRepo()
 	s.stor = &stor
@@ -44,6 +45,7 @@ func NewServer(addr string, loger *log.Logger, maxClients int, scale_rps int64, 
 	return s
 }
 
+// Serve listen and serve for IprotoServer
 func (s *IprotoServer) Serve() {
 	s.loger.Println("Server starts to serve...")
 	s.wg.Add(1)
@@ -79,6 +81,7 @@ func (s *IprotoServer) Serve() {
 	}()
 }
 
+// handleConnection handler for incoming requests to IprotoServer
 func (s *IprotoServer) handleConnection(conn net.Conn, ctx context.Context, endOfHandler chan struct{}) {
 	defer func(conn net.Conn) {
 		err := conn.Close()
@@ -128,6 +131,7 @@ func (s *IprotoServer) handleConnection(conn net.Conn, ctx context.Context, endO
 	endOfHandler <- struct{}{}
 }
 
+// Stop shutdown to IprotoServer
 func (s *IprotoServer) Stop() error {
 	close(s.quit)
 	close(s.queueForClients)
