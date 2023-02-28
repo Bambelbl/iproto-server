@@ -17,6 +17,11 @@ const (
 	MAX_PACKET_SIZE = 350
 )
 
+const (
+	CLIENT_INVALID_BODY      = 401
+	CLIENT_TOO_MANY_REQUESTS = 402
+)
+
 type IprotoServer struct {
 	listener        net.Listener
 	logger          *log.Logger
@@ -105,13 +110,13 @@ func (s *IprotoServer) handleConnection(conn net.Conn, ctx context.Context, endO
 		if err != nil {
 			s.logger.Println("Server: unmarshal error: %s", err.Error())
 			responseBody = "Invalid body in request packet"
-			returnCode = 1
+			returnCode = CLIENT_INVALID_BODY
 		} else {
 			responseBody, returnCode = api.Handler(requestPacket, s.stor)
 		}
 	} else {
 		responseBody = "Too many requests"
-		returnCode = 1
+		returnCode = CLIENT_TOO_MANY_REQUESTS
 	}
 	response, err := response_packet.Marshal(response_packet.IprotoPacketResponse{
 		Header: response_packet.IprotoHeader{
