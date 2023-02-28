@@ -217,7 +217,7 @@ func TestServer(t *testing.T) {
 			Return_code: binary.LittleEndian.Uint32(output[12:16]),
 		}
 		if packet.Header.Func_id == 0x00020002 ||
-			(item.input.Header.Func_id == 0x00020001 && item.output.Return_code == 1) {
+			(item.input.Header.Func_id == 0x00020001 && packet.Return_code == 1) {
 			bodyBytes := make([]byte, packet.Header.Body_length)
 			err = msgpack.Unmarshal(output[16:16+packet.Header.Body_length], &bodyBytes)
 			if err != nil {
@@ -231,6 +231,5 @@ func TestServer(t *testing.T) {
 			t.Errorf("[%d] wrong results: got %+v, expected %+v",
 				caseNum, packet, item.output)
 		}
-
 	}
 }
