@@ -3,7 +3,8 @@ github.com/Bambelbl/iproto-server/packet/response_packet/marshaler.go:9.43,13.2 
 github.com/Bambelbl/iproto-server/packet/response_packet/marshaler.go:16.39,20.2 3 1
 github.com/Bambelbl/iproto-server/packet/response_packet/marshaler.go:23.43,27.2 3 1
 github.com/Bambelbl/iproto-server/packet/response_packet/marshaler.go:30.42,34.2 3 1
-github.com/Bambelbl/iproto-server/packet/response_packet/marshaler.go:37.54,39.16 2 1
-github.com/Bambelbl/iproto-server/packet/response_packet/marshaler.go:42.2,42.17 1 1
-github.com/Bambelbl/iproto-server/packet/response_packet/marshaler.go:39.16,41.3 1 0
-github.com/Bambelbl/iproto-server/packet/response_packet/marshaler.go:46.68,54.2 7 1
+github.com/Bambelbl/iproto-server/packet/response_packet/marshaler.go:37.54,38.16 1 1
+github.com/Bambelbl/iproto-server/packet/response_packet/marshaler.go:44.2,44.17 1 1
+github.com/Bambelbl/iproto-server/packet/response_packet/marshaler.go:38.16,40.17 2 1
+github.com/Bambelbl/iproto-server/packet/response_packet/marshaler.go:40.17,42.4 1 0
+github.com/Bambelbl/iproto-server/packet/response_packet/marshaler.go:48.68,56.2 7 1

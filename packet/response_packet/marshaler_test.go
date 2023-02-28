@@ -15,7 +15,7 @@ func TestMarshal(t *testing.T) {
 		{
 			Packet: IprotoPacketResponse{
 				Header: IprotoHeader{
-					Func_id:    131074,
+					Func_id:    0x00020002,
 					Request_id: 1,
 				},
 				Return_code: 0,

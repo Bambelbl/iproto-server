@@ -55,7 +55,7 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">github.com/Bambelbl/iproto-server/packet/request_packet/unmarshaler.go (89.5%)</option>
+				<option value="file0">github.com/Bambelbl/iproto-server/packet/request_packet/unmarshaler.go (91.7%)</option>
 				
 				</select>
 			</div>
@@ -93,17 +93,22 @@ func bytes2RequestID(data []byte) uint32 <span class="cov8" title="1">{
 }</span>
 
 // bytes2Body from []byte to IprotoBody
-func bytes2Body(func_id uint32, data []byte) (body IprotoBody, err error) <span class="cov8" title="1">{
-        if func_id == 131073 </span><span class="cov8" title="1">{
-                err = msgpack.Unmarshal(data, &amp;body)
+func bytes2Body(func_id uint32, body_length uint32, data []byte) (body IprotoBody, err error) <span class="cov8" title="1">{
+        if func_id == 0x00020001 </span><span class="cov8" title="1">{
+                buf := make([]byte, body_length)
+                err = msgpack.Unmarshal(data, &amp;buf)
                 if err != nil </span><span class="cov0" title="0">{
                         return
                 }</span>
-        } else<span class="cov8" title="1"> if func_id == 131074 </span><span class="cov8" title="1">{
-                err = msgpack.Unmarshal(data, &amp;body.Idx)
+                <span class="cov8" title="1">body.Idx = int(binary.LittleEndian.Uint32(buf[:4]))
+                body.Str = string(buf[4:])</span>
+        } else<span class="cov8" title="1"> if func_id == 0x00020002 </span><span class="cov8" title="1">{
+                buf := make([]byte, body_length)
+                err = msgpack.Unmarshal(data, &amp;buf)
                 if err != nil </span><span class="cov0" title="0">{
                         return
                 }</span>
+                <span class="cov8" title="1">body.Idx = int(binary.LittleEndian.Uint32(buf[:4]))</span>
         }
         <span class="cov8" title="1">return body, nil</span>
 }
@@ -113,10 +118,10 @@ func Unmarshal(data []byte) (requestPacket IprotoPacketRequest, err error) <span
         requestPacket.Header.Func_id = bytes2FuncID(data[:4])
         requestPacket.Header.Body_length = bytes2BodyLength(data[4:8])
         requestPacket.Header.Request_id = bytes2RequestID(data[8:12])
-        if requestPacket.Header.Body_length &gt; 256 </span><span class="cov8" title="1">{
+        if requestPacket.Header.Body_length &gt; 260 </span><span class="cov8" title="1">{
                 err = errors.New("max length of string is 256 bytes")
         }</span> else<span class="cov8" title="1"> {
-                requestPacket.Body, err = bytes2Body(requestPacket.Header.Func_id, data[12:12+requestPacket.Header.Body_length])
+                requestPacket.Body, err = bytes2Body(requestPacket.Header.Func_id, requestPacket.Header.Body_length, data[12:])
         }</span>
         <span class="cov8" title="1">return</span>
 }

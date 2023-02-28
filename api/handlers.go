@@ -33,22 +33,22 @@ func STORAGE_READ(stor *storage.Storage, idx int) (string, error) {
 // Handler Main handler that calls the handler that matches the value func_id
 func Handler(packet request_packet.IprotoPacketRequest, storage *storage.Storage) (string, uint32) {
 	switch packet.Header.Func_id {
-	case 65537:
+	case 0x00010001:
 		ADM_STORAGE_SWITCH_READONLY(storage)
 		return "", 0
-	case 65538:
+	case 0x00010002:
 		ADM_STORAGE_SWITCH_READWRITE(storage)
 		return "", 0
-	case 65539:
+	case 0x00010003:
 		ADM_STORAGE_SWITCH_MAINTENANCE(storage)
 		return "", 0
-	case 131073:
+	case 0x00020001:
 		err := STORAGE_REPLACE(storage, packet.Body.Idx, packet.Body.Str)
 		if err != nil {
 			return err.Error(), 1
 		}
 		return "", 0
-	case 131074:
+	case 0x00020002:
 		body, err := STORAGE_READ(storage, packet.Body.Idx)
 		if err != nil {
 			return err.Error(), 1

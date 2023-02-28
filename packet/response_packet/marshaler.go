@@ -35,9 +35,11 @@ func RequestID2Bytes(data uint32) []byte {
 
 // Body2Bytes from string to []byte
 func Body2Bytes(data string) (res []byte, err error) {
-	res, err = msgpack.Marshal(&data)
-	if err != nil {
-		return
+	if data != "" {
+		res, err = msgpack.Marshal(&data)
+		if err != nil {
+			return
+		}
 	}
 	return res, nil
 }
