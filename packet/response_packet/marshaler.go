@@ -34,22 +34,21 @@ func RequestID2Bytes(data uint32) []byte {
 }
 
 // Body2Bytes from string to []byte
-func Body2Bytes(data string) []byte {
-	res, err := msgpack.Marshal(data)
+func Body2Bytes(data string) (res []byte, err error) {
+	res, err = msgpack.Marshal(&data)
 	if err != nil {
-		return []byte{}
+		return
 	}
-	return res
+	return res, nil
 }
 
 // Marshal from IprotoPacketResponse to []byte
-func Marshal(packet IprotoPacketResponse) []byte {
-	var data []byte
+func Marshal(packet IprotoPacketResponse) (data []byte, err error) {
 	data = append(data, FuncID2Bytes(packet.Header.Func_id)...)
-	bodyBytes := Body2Bytes(packet.Body)
+	bodyBytes, err := Body2Bytes(packet.Body)
 	data = append(data, BodyLength2Bytes(uint32(len(bodyBytes)))...)
 	data = append(data, RequestID2Bytes(packet.Header.Request_id)...)
 	data = append(data, ReturnCode2Bytes(packet.Return_code)...)
 	data = append(data, bodyBytes...)
-	return data
+	return data, err
 }
