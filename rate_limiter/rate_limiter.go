@@ -22,9 +22,9 @@ const (
 	INTERVAL_TIME  = 5000
 )
 
-func NewRateLimiter(loger *log.Logger, scale int64, limit uint32) *RateLimiter {
+func NewRateLimiter(logger *log.Logger, scale int64, limit uint32) *RateLimiter {
 	rateLimiter := &RateLimiter{
-		logger:   loger,
+		logger:   logger,
 		buckets:  make(map[string]uint32),
 		scale:    scale,
 		limit:    limit,

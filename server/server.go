@@ -19,7 +19,7 @@ const (
 
 type IprotoServer struct {
 	listener        net.Listener
-	loger           *log.Logger
+	logger          *log.Logger
 	quit            chan struct{}
 	queueForClients chan struct{}
 	wg              sync.WaitGroup
@@ -30,7 +30,7 @@ type IprotoServer struct {
 // NewIprotoServer initializes IprotoServer and starts it to listen
 func NewIprotoServer(addr string, logger *log.Logger, maxClients int, scale_rps int64, limit_rps uint32) *IprotoServer {
 	s := &IprotoServer{
-		loger:           logger,
+		logger:          logger,
 		quit:            make(chan struct{}),
 		queueForClients: make(chan struct{}, maxClients),
 		rateLimiter:     rate_limiter.NewRateLimiter(logger, scale_rps, limit_rps),
@@ -39,7 +39,7 @@ func NewIprotoServer(addr string, logger *log.Logger, maxClients int, scale_rps 
 	s.stor = &stor
 	l, err := net.Listen("tcp", addr)
 	if err != nil {
-		s.loger.Fatal("Server: listen err: %s", err.Error())
+		s.logger.Fatal("Server: listen err: %s", err.Error())
 	}
 	s.listener = l
 	return s
@@ -47,7 +47,7 @@ func NewIprotoServer(addr string, logger *log.Logger, maxClients int, scale_rps 
 
 // Serve listen and serve for IprotoServer
 func (s *IprotoServer) Serve() {
-	s.loger.Println("Server starts to serve...")
+	s.logger.Println("Server starts to serve...")
 	s.wg.Add(1)
 	go func() {
 		defer s.wg.Done()
@@ -58,7 +58,7 @@ func (s *IprotoServer) Serve() {
 				case <-s.quit:
 					return
 				default:
-					s.loger.Println("Server: accept error: %s", err)
+					s.logger.Println("Server: accept error: %s", err)
 				}
 			} else {
 				s.wg.Add(1)
@@ -69,9 +69,9 @@ func (s *IprotoServer) Serve() {
 					go s.handleConnection(conn, ctx, endOfHandler)
 					select {
 					case <-ctx.Done():
-						s.loger.Println("Server: timeout for handler")
+						s.logger.Println("Server: timeout for handler")
 					case <-endOfHandler:
-						s.loger.Println("Server: handler finished")
+						s.logger.Println("Server: handler finished")
 					}
 					close(endOfHandler)
 					s.wg.Done()
@@ -86,13 +86,13 @@ func (s *IprotoServer) handleConnection(conn net.Conn, ctx context.Context, endO
 	defer func(conn net.Conn) {
 		err := conn.Close()
 		if err != nil {
-			s.loger.Println("Server: connection close error: %s", err.Error())
+			s.logger.Println("Server: connection close error: %s", err.Error())
 		}
 	}(conn)
 	buf := make([]byte, MAX_PACKET_SIZE)
 	_, err := conn.Read(buf)
 	if err != nil {
-		s.loger.Println("Server: read from request error: %s", err.Error())
+		s.logger.Println("Server: read from request error: %s", err.Error())
 		<-s.queueForClients
 		endOfHandler <- struct{}{}
 		return
@@ -103,7 +103,7 @@ func (s *IprotoServer) handleConnection(conn net.Conn, ctx context.Context, endO
 	if s.rateLimiter.ValidRate(conn.RemoteAddr().String()) {
 		requestPacket, err = request_packet.Unmarshal(buf)
 		if err != nil {
-			s.loger.Println("Server: unmarshal error: %s", err.Error())
+			s.logger.Println("Server: unmarshal error: %s", err.Error())
 			responseBody = "Invalid body in request packet"
 			returnCode = 1
 		} else {
@@ -113,16 +113,23 @@ func (s *IprotoServer) handleConnection(conn net.Conn, ctx context.Context, endO
 		responseBody = "Too many requests"
 		returnCode = 1
 	}
-	_, err = conn.Write(response_packet.Marshal(response_packet.IprotoPacketResponse{
+	response, err := response_packet.Marshal(response_packet.IprotoPacketResponse{
 		Header: response_packet.IprotoHeader{
 			Func_id:     requestPacket.Header.Func_id,
 			Body_length: 0,
 			Request_id:  requestPacket.Header.Request_id},
 		Return_code: returnCode,
 		Body:        responseBody,
-	}))
+	})
 	if err != nil {
-		s.loger.Println("Server: write response error: %s", err.Error())
+		s.logger.Println("Server: marshal response error: %s", err.Error())
+		<-s.queueForClients
+		endOfHandler <- struct{}{}
+		return
+	}
+	_, err = conn.Write(response)
+	if err != nil {
+		s.logger.Println("Server: write response error: %s", err.Error())
 		<-s.queueForClients
 		endOfHandler <- struct{}{}
 		return
