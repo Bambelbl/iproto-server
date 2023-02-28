@@ -83,18 +83,18 @@ func (s *IprotoServer) Serve() {
 
 // handleConnection handler for incoming requests to IprotoServer
 func (s *IprotoServer) handleConnection(conn net.Conn, ctx context.Context, endOfHandler chan struct{}) {
-	defer func(conn net.Conn) {
+	defer func() {
+		<-s.queueForClients
+		endOfHandler <- struct{}{}
 		err := conn.Close()
 		if err != nil {
 			s.logger.Println("Server: connection close error: %s", err.Error())
 		}
-	}(conn)
+	}()
 	buf := make([]byte, MAX_PACKET_SIZE)
 	_, err := conn.Read(buf)
 	if err != nil {
 		s.logger.Println("Server: read from request error: %s", err.Error())
-		<-s.queueForClients
-		endOfHandler <- struct{}{}
 		return
 	}
 	var responseBody string
@@ -123,19 +123,13 @@ func (s *IprotoServer) handleConnection(conn net.Conn, ctx context.Context, endO
 	})
 	if err != nil {
 		s.logger.Println("Server: marshal response error: %s", err.Error())
-		<-s.queueForClients
-		endOfHandler <- struct{}{}
 		return
 	}
 	_, err = conn.Write(response)
 	if err != nil {
 		s.logger.Println("Server: write response error: %s", err.Error())
-		<-s.queueForClients
-		endOfHandler <- struct{}{}
 		return
 	}
-	<-s.queueForClients
-	endOfHandler <- struct{}{}
 }
 
 // Stop shutdown to IprotoServer
